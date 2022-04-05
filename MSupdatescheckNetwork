@@ -1,0 +1,24 @@
+Output "List of installed MS updates" BLUE INFO 
+$WINUPDATES = Get-WmiObject -Class "win32_quickfixengineering" | Select-Object -Property "Description", "HotfixID", @{Name="InstalledOn"; Expression={([DateTime]($_.InstalledOn)).ToLocalTime()}}
+
+write $WINUPDATES | out-file -filepath $PRECHECKFOLDER\MSupdates.txt -append 
+
+write-host ""
+$colItems = get-wmiobject -class "Win32_NetworkAdapterConfiguration" | where {$_.IpEnabled -match "True" }
+Output "Server Hostname: $server" BLUE INFO
+Output "SQL Server hostname: $SQLSERVERNAME" BLUE INFO 
+
+Output "Network Information" BLUE INFO 
+foreach ($objItem in $colItems) {
+ $NIC=$objItem.Description
+ $IP=$objItem.IPAddress
+ $SUBNET=$objItem.IPSubnet
+ $MAC=$objItem.MACAddress
+ $GW=$objItem.DefaultIPGateway
+ OutputNoSpace  "Network Name   : $NIC" BLUE INFO
+ OutputNoSpace  "IP Address     : $IP" BLUE INFO
+ OutputNoSpace "Subnet Mask    : $SUBNET" BLUE INFO
+ OutputNoSpace "Default Gateway: $GW" BLUE INFO
+ OutputNoSpace "Mac Address    : $MAC" BLUE INFO
+ write-Host " " | out-file -filepath $PRECHECKFOLDER\$precheck -append 
+}
