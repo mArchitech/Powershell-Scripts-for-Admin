@@ -1,3 +1,4 @@
+# Checks if there is SQL
 #if ( $SQLCMD -eq '1') {
 #Start-Process -file $SQLCMDUTILS -arg $SQLCMDUTILSARG -Wait 
 #}
