@@ -154,3 +154,13 @@ else
 {
 Output "No Jobs in Send tab" BLUE INFO 
 }
+
+#Modifying SQL server memory
+
+if (($dbu -eq $null) -and ($dbp -eq $null)) {
+	$ALLCURRENTMAXMEMORY = sqlcmd -S $SQLSERVERNAME -Q "select Value FROM sys.configurations WHERE name = 'max server memory (MB)'" -W -h -1
+} else {
+	$ALLCURRENTMAXMEMORY = sqlcmd -S $SQLSERVERNAME -Q "select Value FROM sys.configurations WHERE name = 'max server memory (MB)'" -W -h -1 -U $dbu -P $dbp
+}
+
+Output "Microsoft SQL Max Memory configured: $ALLCURRENTMAXMEMORY" BLUE INFO 
