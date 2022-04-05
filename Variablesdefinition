@@ -1,0 +1,24 @@
+$PRECHECKFOLDER = "FolderWhereTheFileIsLocated"
+$SourceFile = "LogFilePath"
+$TargetFile = "FilePathForHTMLfile"
+
+#For Failover environments, adjust the variable $SQLSERVERNAME according the configured name for the SQL
+
+$Date_time= Get-Date -format "yyyyMMdd_HHmmss"
+$server = $env:computername 
+$disks = Get-WmiObject -ComputerName $server -Class Win32_LogicalDisk -Filter "DriveType = 3";
+$serial = Get-RegistryValue 'WhereSerialIsLocated\' serial
+$precheck="prechecks.log"
+$OSLanguage = (Get-WmiObject Win32_OperatingSystem).OSlanguage
+$MUILanguage = (Get-WmiObject Win32_OperatingSystem).MUIlanguages
+$build = @{n="Build";e={$_.BuildNumber}}
+$Win32_OS = Get-WmiObject Win32_OperatingSystem  | select $build, Caption, servicepackmajorversion
+$caption = Get-WmiObject Win32_OperatingSystem  | select Caption
+#If needed application versions use this script for example Openlink application
+$OpenlinkVersion = Get-RegistryValue 'HKLM:\SOFTWARE\Cerner\Cerner OPENLink 24000007' Current
+$zipprecheck = "C:\" + "temp" +"\" + "prechecks" + "\" + "prechecks_"+ $serial +"_" + $Date_time + ".zip"
+#If needed Net Framework Setup version use this script
+$DOTNETVERSION = Get-RegistryValue 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Client' TargetVersion
+$blacklist ="NOPACKAGES"
+$licensefile=LicenceFilePath"
+$nwlicensefile="NewLicenseFilePath"
