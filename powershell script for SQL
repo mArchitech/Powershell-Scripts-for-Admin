@@ -39,3 +39,29 @@ function Get-RegistryValue ($path, $name)
         $key.GetValue($name, $null)
     }
 }
+
+# SQL Queries
+#
+########################################################################################################
+
+$SQLSERVERNAME = (Get-ItemProperty -Path Registry::RegistryPathForDB.DBHOSTNAME
+
+if (($dbu -eq $null) -and ($dbp -eq $null)) {
+	$countOfReceived = sqlcmd -S $SQLSERVERNAME -d pcvnijournal -Q "select count(*) from Receive" -W -h -1 -u
+	$countOfRetrieve = sqlcmd -S $SQLSERVERNAME -d pcvnijournal -Q "select count(*) from Retrieve" -W -h -1 -u
+	$countOfSend = sqlcmd -S $SQLSERVERNAME -d pcvnijournal -Q "select count(*) from SendTail" -W -h -1 -u
+	$querySQLVersion = sqlcmd -S $SQLSERVERNAME -Q "SELECT SERVERPROPERTY('productversion')"  -W -h -1 
+	$SQLversion_name = sqlcmd -S $SQLSERVERNAME -Q "select @@VERSION" -W -h -1 -u
+	$queryplazashare= sqlcmd -S $SQLSERVERNAME -d pcv_dicom_db -Q "Select * from DatabaseAccount" -W -h -1 
+	$collation = sqlcmd -S $SQLSERVERNAME -Q "select  collation_name from sys.databases group by collation_name " -W -h -1 -u
+    $STScount = sqlcmd -S $SQLSERVERNAME -d pcv_dicom_db -Q "select count(*) from StationStorePath" -W -h -1 -u
+} else {
+	$countOfReceived = sqlcmd -S $SQLSERVERNAME -d pcvnijournal -Q "select count(*) from Receive" -W -h -1 -u -U $dbu -P $dbp
+	$countOfRetrieve = sqlcmd -S $SQLSERVERNAME -d pcvnijournal -Q "select count(*) from Retrieve" -W -h -1 -u -U $dbu -P $dbp
+	$countOfSend = sqlcmd -S $SQLSERVERNAME -d pcvnijournal -Q "select count(*) from SendTail" -W -h -1 -u -U $dbu -P $dbp
+	$querySQLVersion = sqlcmd -S $SQLSERVERNAME -Q "SELECT SERVERPROPERTY('productversion')"  -W -h -1 -U $dbu -P $dbp 
+	$SQLversion_name = sqlcmd -S $SQLSERVERNAME -Q "select @@VERSION" -W -h -1 -u -U $dbu -P $dbp
+	$queryDBaccount= sqlcmd -S $SQLSERVERNAME -d dbname -Q "Select * from DBuseraccount" -W -h -1 -U $dbu -P $dbp
+ 	$collation = sqlcmd -S $SQLSERVERNAME -Q "select  collation_name from sys.databases group by collation_name " -W -h -1 -u -U $dbu -P $dbp
+    $STScount = sqlcmd -S $SQLSERVERNAME -d dbname -Q "select count(*) from StationStorePath" -W -h -1 -u -U $dbu -P $dbp
+}
