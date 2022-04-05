@@ -1,0 +1,95 @@
+Output "SRS information" DARKRED HEAD
+
+if (Select-String "<ONLINE>false</ONLINE>" ApplicationFilePath.xml{
+    output "System Management (MNP)  : Not Registered" RED ERROR
+    }
+else
+{
+	output "System Management (MNP)  : MNP registered." BLUE INFO
+}
+
+
+Output "System details (OEM Software)" DARKRED HEAD 
+
+$SysInformation=Get-WmiObject -Class Win32_ComputerSystem 
+foreach ($objItem in $SysInformation){
+	$Manufacturer= $objItem.Manufacturer
+	$Model = $objItem.Model
+	$TotalMemory = [Math]::Round($objItem.TotalPhysicalMemory/ 1073741824);
+
+}
+$Manufacturer = $manufacturer.ToString().ToLower();
+$Model = $Model.ToString().ToUpperInvariant()
+Output "Manufacturer:$Manufacturer" BLUE INFO
+Output "Model: $Model" BLUE INFO
+
+
+
+
+# Check available space
+
+	foreach($disk in $disks)
+	{
+		$deviceID = $disk.DeviceID;
+		[float]$size = $disk.Size;
+		[float]$freespace = $disk.FreeSpace;
+		$percentFree = [Math]::Round(($freespace / $size) * 100, 2);
+		$sizeGB = [Math]::Round($size / 1073741824, 2);
+		$freeSpaceGB = [Math]::Round($freespace / 1073741824, 2);
+		OutputNoSpace "$deviceID percentage free space (GB) = $percentFree" BLUE INFO 
+	}
+
+
+
+Output "Total Memory (in GB): $TotalMemory  " BLUE INFO
+
+$Windowversion = 0
+
+
+$swcaption=$caption.Caption
+switch ($caption.Caption){
+    'Microsoft Windows Server 2012 R2 Standard'
+         { $Windowversion = 1
+           Output "Version: $swcaption" BLUE INFO
+         }
+	'Microsoft Windows Server 2016 Standard'
+         { $Windowversion = 1
+           Output "Version: $swcaption" BLUE INFO
+         }
+	'Microsoft Windows Server 2016 Datacenter'
+         { $Windowversion = 1
+           Output "Version: $swcaption" BLUE INFO
+         }
+    'Microsoft Windows 10 Pro' 
+        { $Windowversion = 0
+          Output "Version: $swcaption" BLUE INFO
+        }
+    'Microsoft Windows 10 Enterprise' 
+        { $Windowversion = 0 
+        Output "Version: $swcaption" BLUE INFO
+        }
+    Default {Output "Please verify Windows Version: $swcaption" RED ERROR }
+}     
+
+
+if ( ($OSLanguage -eq '1033') -and ($MUILanguage -eq "en-US") )
+{
+    OutputNoSpace "MUI language: $MUILanguage" BLUE INFO
+    OutputNoSpace "OS Language: $OSLanguage" BLUE INFO
+}
+
+if( $Windowversion -eq 1 ) { 
+
+$OSBackup= Get-WBSummary 
+foreach ($obj in $OSBackup){
+	$LastBackupTime =$obj.LastBackupTime
+	$LastSuccessfulBackupTime =$obj.LastSuccessfulBackupTime
+	$DetailedMessage =$obj.DetailedMessage
+	$nextbackup = $obj.NextBackupTime
+	
+}
+
+Output "OS Backup configuration" BLUE INFO 
+OutputNoSpace "Last Backup $LastBackupTime - Message:  $DetailedMessage " BLUE INFO
+OutputNoSpace "Last successfull Backup $LastSuccessfulBackupTime" BLUE INFO
+OutputNoSpace "Next Backup $nextbackup" BLUE INFO
