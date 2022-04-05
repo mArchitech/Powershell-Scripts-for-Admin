@@ -1,0 +1,31 @@
+#Checking Certificates
+Output "Certificates" DARKRED HEAD
+if( $Windowversion -eq 1 ){
+
+	$certificates = Get-ChildItem -Path cert:\LocalMachine\My\ -Recurse | where { $_.Subject -like "*$server*" } | Select-Object Subject, Sumary, NotBefore, NotAfter
+
+	foreach ($item in $certificates)
+	{
+		$certname= $item.Subject
+		$certdate= $item.NotBefore
+		$certexpire = $item.NotAfter 
+		$expirein12months = (get-date).AddDays(365)
+		#TODO: validate expire date output
+		 if ( $certexpire -ge  $expirein12months){
+			OutputNoSpace "Certificate name: $certname" BLUE INFO  
+			OutputNoSpace "Creation date   : $certdate " BLUE INFO 
+			OutputNoSpace "Expiration date : $certexpire" BLUE INFO 
+			write-host ""
+		 }
+		 else {
+			OutputNoSpace "Certificate name: $certname" RED ERROR 
+			OutputNoSpace "Creation date   : $certdate " RED ERROR
+			OutputNoSpace "Expiration date : $certexpire" RED ERROR
+			write-host ""
+		}       
+	}
+}
+else
+{
+Output "Non Windows Server System. No certificates" BLUE INFO
+}
