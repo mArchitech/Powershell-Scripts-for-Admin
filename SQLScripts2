@@ -1,0 +1,156 @@
+# Check MSSQL version
+
+$SQLVersion= "{0}" -f $querySQLVersion
+
+$SQLversion_full = "{0}" -f $SQLversion_name
+
+Output "Microsoft SQL Version: $SQLVERSION - $SQLversion_full" BLUE INFO 
+
+
+
+
+Output "Scheduled jobs status" BLUE INFO
+
+[System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo") | Out-Null;
+
+# Get List of sql servers to check
+
+if (($dbu -eq $null) -and ($dbp -eq $null)) {
+	$sqlServer = New-Object Microsoft.SqlServer.Management.Smo.Server($sqlServerName) 
+} else {
+	$conn = new-object Microsoft.SqlServer.Management.Common.ServerConnection($sqlServerName,$dbu,$dbp)
+	$sqlServer = New-Object Microsoft.SqlServer.Management.Smo.Server($conn) 
+}
+
+$countsqljobs =0
+foreach($job in $sqlServer.JobServer.Jobs) 
+{ 
+    $name= $job.Name
+	$enabled = $job.IsEnabled
+	$LastRunDate= $job.LastRunDate
+	$Lastrunstatus = $job.LastRunOutcome 
+    if ( $job.Name -like "*") { $countsqljobs ++ 
+
+        if ( $Lastrunstatus -eq "Succeeded"){
+        	OutputNoSpace "Schedule Job Name            : $name" BLUE INFO
+        	OutputNoSpace "Schedule job Status          : $enabled" BLUE INFO 
+            OutputNoSpace "Schedule job last run date   : $LastRunDate" BLUE 
+            OutputNoSpace "Schedule job last run status : $Lastrunstatus" BLUE INFO
+            write-output " " 	
+        }
+        else {
+            OutputNoSpace "Schedule Job Name            : $name" RED ERROR 
+    	    OutputNoSpace "Schedule job Status          : $enabled" RED ERROR 
+            OutputNoSpace "Schedule job last run date   : $LastRunDate" RED ERROR 
+            OutputNoSpace "Schedule job last run status : $Lastrunstatus" RED ERROR 
+            write-output " " 	
+        }    
+    }
+    
+} 
+if ( $countsqljobs -le 9) {
+    Output  $countsqljobs RED ERROR
+    Output "Something wrong with SQL jobs. Please check if all jobs are available" RED ERROR
+}
+
+  
+if (($dbu -eq $null) -and ($dbp -eq $null)) {
+	$countOfReceived = sqlcmd -S $SQLSERVERNAME -d pcvnijournal -Q "set nocount on;select  count (*) as number_of_jobs,  status from Receive group by Status" -W -h -1 -u -s ";"  
+	$countOfRetrieve = sqlcmd -S $SQLSERVERNAME -d pcvnijournal -Q "set nocount on;select  count (*) as number_of_jobs,  status from Retrieve group by Status" -W -h -1 -u -s ";"  
+	$countOfSend = sqlcmd -S $SQLSERVERNAME -d pcvnijournal -Q "set nocount on;select  count (*) as number_of_jobs,  status from SendTail group by Status" -W -h -1 -u -s ";"  
+} else {
+	$countOfReceived = sqlcmd -S $SQLSERVERNAME -d pcvnijournal -Q "set nocount on;select  count (*) as number_of_jobs,  status from Receive group by Status" -W -h -1 -u -s ";" -U $dbu -P $dbp
+	$countOfRetrieve = sqlcmd -S $SQLSERVERNAME -d pcvnijournal -Q "set nocount on;select  count (*) as number_of_jobs,  status from Retrieve group by Status" -W -h -1 -u -s ";" -U $dbu -P $dbp
+	$countOfSend = sqlcmd -S $SQLSERVERNAME -d pcvnijournal -Q "set nocount on;select  count (*) as number_of_jobs,  status from SendTail group by Status" -W -h -1 -u -s ";" -U $dbu -P $dbp
+}
+
+
+
+Output "DB2 - Receive status:" BLUE INFO
+if ($countOfReceived){
+    foreach ($value in $countOfReceived){
+        %{$result = $value.split(";")}
+        switch ($($result[1])){
+        "0" {
+            OutputNoSpace "Number of jobs: $($result[0])" RED ERROR 
+            OutputNoSpace "Status: To be done" RED ERROR 
+        }
+        "1" {
+            OutputNoSpace "Number of jobs: $($result[0])" BLUE INFO 
+            OutputNoSpace "Status: In Progress" BLUE INFO 
+        }
+        "2" {
+            OutputNoSpace "Number of jobs: $($result[0])" BLUE INFO  
+            OutputNoSpace "Status: Successfull" BLUE INFO 
+            }
+        "3" {
+            OutputNoSpace "Number of jobs: $($result[0])" RED ERROR 
+            OutputNoSpace "Status: Error" RED ERROR 
+        }
+      }
+    }
+}
+else 
+{
+Output "No Jobs in Receive tab" BLUE INFO 
+}
+
+
+Output "DB2 - Retrieve status:" BLUE INFO
+if ($countOfRetrieve){
+foreach ($value in $countOfRetrieve){
+    %{$result = $value.split(";")}
+    switch ($($result[1])){
+    "0" {
+        OutputNoSpace "Number of jobs: $($result[0])" RED ERROR 
+        OutputNoSpace "Status: To be done" RED ERROR 
+    }
+    "1" {
+        OutputNoSpace "Number of jobs: $($result[0])" BLUE INFO 
+        OutputNoSpace "Status: In Progress" BLUE INFO 
+    }
+    "2" {
+        OutputNoSpace "Number of jobs: $($result[0])" BLUE INFO  
+        OutputNoSpace "Status: Successfull" BLUE INFO 
+    }
+
+    "3" {
+        OutputNoSpace "Number of jobs: $($result[0])" RED ERROR 
+        OutputNoSpace "Status: Error" RED ERROR 
+    }
+  }
+}
+}
+else 
+{
+Output "No Jobs in Retrieve tab" BLUE INFO 
+}
+
+Output "DB2 - Send status:" BLUE INFO
+if ($countOfSend){
+foreach ($value in $countOfSend){
+    %{$result = $value.split(";")}
+    switch ($($result[1])){
+    "0" {
+        OutputNoSpace "Number of jobs: $($result[0])" RED ERROR 
+        OutputNoSpace "Status: To be done" RED ERROR 
+    }
+    "1" {
+        OutputNoSpace "Number of jobs: $($result[0])" BLUE INFO 
+        OutputNoSpace "Status: In Progress" BLUE INFO 
+    }
+    "2" {
+        OutputNoSpace "Number of jobs: $($result[0])" BLUE INFO  
+        OutputNoSpace "Status: Successfull" BLUE INFO 
+    }
+    "3" {
+        OutputNoSpace "Number of jobs: $($result[0])" RED ERROR 
+        OutputNoSpace "Status: Error" RED ERROR 
+    }
+  }
+}
+}
+else 
+{
+Output "No Jobs in Send tab" BLUE INFO 
+}
