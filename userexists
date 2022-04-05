@@ -1,0 +1,12 @@
+# Check if some needed user exists
+$countusername = "{0}" -f $queryInsertuser
+
+if ($countusername)
+ {
+     write $countusername | out-file -filepath $PRECHECKFOLDER\$precheck -append    
+     Output "User :User exists in Plaza DB" BLUE INFO 
+}
+else 
+{ 
+    Output "User :User doesn't exist in Plaza DB" RED ERROR 
+}
