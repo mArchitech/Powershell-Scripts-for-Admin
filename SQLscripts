@@ -1,4 +1,19 @@
-# Checks if there is SQL
+#Check if DB Server is running on host
+$wecutiloutput =""
+$DBserviceName = 'MSSQLSERVER'
+If (-Not(Get-Service $DBserviceName -ErrorAction SilentlyContinue)) {                                        # Continues if DB is NOT running on current host
+       $wecutiloutput   =  wecutil es 2>NULL                                                                 # Write output of Subscription to var $wecutiloutput                               
+        if ($wecutiloutput -eq ""){                                                                          # Check if there is an subscription 
+            Output "Dedicated DB detected. No Subscription implemented!" RED ERROR                          
+        } 
+        else {
+            Output "Subscription in Event Viewer found for DB" BLUE INFO     
+        }
+   }
+   else {
+    Output "SQL Service is running on this host" BLUE INFO      
+   }
+
 #if ( $SQLCMD -eq '1') {
 #Start-Process -file $SQLCMDUTILS -arg $SQLCMDUTILSARG -Wait 
 #}
