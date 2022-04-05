@@ -1,0 +1,40 @@
+#if ( $SQLCMD -eq '1') {
+#Start-Process -file $SQLCMDUTILS -arg $SQLCMDUTILSARG -Wait 
+#}
+#else 
+#{
+#write-host "Unable to install SQL command line utils, please execute queries manually"
+#exit(1)
+#}
+
+param($dbu, $dbp)
+
+function Output ( [string]$message , [string]$color, [string]$type )
+{
+    $dt = Get-Date
+    write-Host "" | out-file -filepath $PRECHECKFOLDER\$precheck -append 
+    write-Host "==> $message"  -backgroundcolor $color
+	if ($type.Contains('HEAD')){
+		write-output "$type - $message" | out-file -filepath $PRECHECKFOLDER\$precheck -append
+	} else {
+	write-output "$type;$message" | out-file -filepath $PRECHECKFOLDER\$precheck -append
+	write-output " " | out-file -filepath $PRECHECKFOLDER\$precheck -append 
+	}
+}
+
+function OutputNoSpace ( [string]$message , [string]$color, [string]$type )
+{
+    $dt = Get-Date
+    write-Host "==> $message"  -backgroundcolor $color
+    write-output "$type;$message" | out-file -filepath $PRECHECKFOLDER\$precheck -append
+}
+
+
+# Gets the specified registry value or $null if it is missing
+function Get-RegistryValue ($path, $name)
+{
+    $key = Get-Item -LiteralPath $path -ErrorAction SilentlyContinue
+    if ($key) {
+        $key.GetValue($name, $null)
+    }
+}
