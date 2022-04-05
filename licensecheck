@@ -1,0 +1,20 @@
+$licensefile="FilepathforLicense\Licence.lic"
+
+
+$permanent = Get-content $licensefile 
+
+if ( $permanent -like "*permanent*" )
+{
+   Output "Permanent licences" BLUE INFO
+   $cntfeature = -split (get-content $licensefile  | out-string) | where  { $_ -eq "FEATURE" } | measure | select -exp count
+   $cntpermanent = -split (get-content $licensefile  | out-string) | where  { $_ -eq "PERMANENT" } | measure | select -exp count   
+   if ( $cntfeature -ne $cntpermanent ) {
+    Output "The number of features is different from the number of permanent licenses" RED ERROR
+   } else {
+    Output "...All OK" BLUE INFO
+   }
+}
+else
+{
+   Output "Please verify the license files. It seems there are no Permanent licences in licence.lic" RED ERROR
+}
